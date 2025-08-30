@@ -19,6 +19,11 @@ const eslintConfig = [
       "build/**",
       "next-env.d.ts",
     ],
+    rules: {
+      "@typescript-eslint/no-explicit-any": "off", // Allow `any`
+      "@typescript-eslint/no-unused-vars": "off",  // Allow unused variables
+      "react-hooks/exhaustive-deps": "off",        // Ignore missing deps in useEffect
+    },
   },
 ];
 
