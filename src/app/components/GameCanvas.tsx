@@ -1,5 +1,5 @@
 'use client';
-import { useRef, useImperativeHandle, forwardRef } from 'react';
+import { useRef, useImperativeHandle, forwardRef, useEffect } from 'react';
 
 interface GameCanvasProps {
   isMobile: boolean;
@@ -18,6 +18,7 @@ const GameCanvas = forwardRef<GameCanvasRef, GameCanvasProps>(({ isMobile, isLan
     getCanvas: () => canvasRef.current,
     getContext: () => canvasRef.current?.getContext('2d') || null,
   }));
+
 
   return (
     <canvas 

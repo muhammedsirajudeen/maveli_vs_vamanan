@@ -1,120 +1,29 @@
-'use client';
+import React from 'react';
 import GameCanvas, { GameCanvasRef } from '@/app/components/GameCanvas';
 import GameOverlay, { GameOverlayRef } from '@/app/components/GameOverlay';
 import HUD, { HUDRef } from '@/app/components/HUD';
 import MobileControls from '@/app/components/MobileControls';
-import { createPlayer, resetPlayer } from '@/game/Player';
-import { useDeviceDetection } from '@/hooks/useDeviceDetection';
 import { useGameLoop } from '@/hooks/useGameLoop';
 import { useSpriteLoader } from '@/hooks/useSpriteLoader';
+import { useDeviceDetection } from '@/hooks/useDeviceDetection';
+import { createPlayer, resetPlayer } from '@/game/Player';
 import { Player } from '@/types/Player';
-import React from 'react';
-import { useRef, useState } from 'react';
+import { useRef, useState, useEffect } from 'react';
+import TropicalLoadingScreen from '@/app/components/LoadingScreen';
 
 export default function ResponsiveFightingGame() {
   const { isMobile, isLandscape } = useDeviceDetection();
-  const { spriteLoaded, spriteSheet } = useSpriteLoader();
-  
+  const { spriteLoaded: spriteLoadedMaveli, spriteSheet: spriteSheetMaveli } = useSpriteLoader("maveli");
+  const { spriteLoaded: spriteLoadedVamanan, spriteSheet: spriteSheetVamanan } = useSpriteLoader("vamanan");
+
   const canvasRef = useRef<GameCanvasRef>(null);
   const hudRef = useRef<HUDRef>(null);
   const overlayRef = useRef<GameOverlayRef>(null);
-  
   const keys = useRef(new Set<string>());
   const mobileKeys = useRef(new Set<string>());
   const playersRef = useRef<[Player, Player] | null>(null);
 
   const [gameActive, setGameActive] = useState(false);
-
-  // Initialize players
-  const initializePlayers = () => {
-    const canvas = canvasRef.current?.getCanvas();
-    if (!canvas) return null;
-
-    const W = canvas.clientWidth;
-    const FLOOR_Y = canvas.clientHeight - (isMobile ? 60 : 90);
-
-    const p1 = createPlayer({
-      x: isMobile ? 60 : 120,
-      color: '#4ade80',
-      face: 1,
-      controls: { left: 'a', right: 'd', up: 'w', punch: 'f', kick: 'g' },
-      isBot: true,
-      isMobile,
-      isLandscape,
-      floorY: FLOOR_Y,
-    });
-
-    const p2 = createPlayer({
-      x: W - (isMobile ? 100 : 170),
-      color: '#60a5fa',
-      face: -1,
-      controls: { left: 'ArrowLeft', right: 'ArrowRight', up: 'ArrowUp', punch: '/', kick: '.' },
-      isBot: false,
-      isMobile,
-      isLandscape,
-      floorY: FLOOR_Y,
-    });
-
-    return [p1, p2] as [Player, Player];
-  };
-
-  const resetGame = () => {
-    const canvas = canvasRef.current?.getCanvas();
-    if (!canvas || !playersRef.current) return;
-
-    const W = canvas.clientWidth;
-    const FLOOR_Y = canvas.clientHeight - (isMobile ? 60 : 90);
-    const [p1, p2] = playersRef.current;
-
-    resetPlayer(p1, isMobile ? 60 : 120, 1, FLOOR_Y);
-    resetPlayer(p2, W - (isMobile ? 100 : 170), -1, FLOOR_Y);
-    
-    overlayRef.current?.hide();
-    setGameActive(true);
-    gameLoop.resetTimer();
-    gameLoop.startLoop();
-  };
-
-  const handleUpdateHUD = (p1hp: number, p2hp: number, timer: number) => {
-    const hud = hudRef.current;
-    if (!hud) return;
-
-    const p1Percentage = Math.max(0, Math.min(100, p1hp));
-    const p2Percentage = Math.max(0, Math.min(100, p2hp));
-    
-    if (hud.hp1) {
-      hud.hp1.style.width = p1Percentage + '%';
-      if (p1Percentage <= 25) {
-        hud.hp1.className = 'h-full bg-red-500';
-      } else if (p1Percentage <= 50) {
-        hud.hp1.className = 'h-full bg-yellow-500';
-      } else {
-        hud.hp1.className = 'h-full bg-green-400';
-      }
-    }
-    
-    if (hud.hp2) {
-      hud.hp2.style.width = p2Percentage + '%';
-      if (p2Percentage <= 25) {
-        hud.hp2.className = 'h-full bg-red-500';
-      } else if (p2Percentage <= 50) {
-        hud.hp2.className = 'h-full bg-yellow-500';
-      } else {
-        hud.hp2.className = 'h-full bg-blue-400';
-      }
-    }
-    
-    if (hud.timer) {
-      hud.timer.textContent = String(timer);
-    }
-  };
-
-  const handleGameEnd = (winner: string) => {
-    setGameActive(false);
-    overlayRef.current?.setResult(winner);
-    overlayRef.current?.show();
-    gameLoop.stopLoop();
-  };
 
   const gameLoop = useGameLoop({
     canvas: canvasRef.current?.getCanvas() || null,
@@ -123,42 +32,62 @@ export default function ResponsiveFightingGame() {
     keys: keys.current,
     mobileKeys: mobileKeys.current,
     isMobile,
-    spriteSheet,
-    spriteLoaded,
+    spriteSheet: spriteSheetMaveli,
+    spriteLoaded: spriteLoadedMaveli,
+    botspriteLoaded: spriteLoadedVamanan,
+    botspriteSheet: spriteSheetVamanan,
     onUpdateHUD: handleUpdateHUD,
     onGameEnd: handleGameEnd,
   });
 
-  // Keyboard handlers
-  const handleKeyDown = (e: KeyboardEvent) => {
-    keys.current.add(e.key);
-    if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', ' '].includes(e.key)) {
-      e.preventDefault();
-    }
-    if (e.key.toLowerCase() === 'r') {
-      resetGame();
-    }
+  function handleUpdateHUD(p1hp: number, p2hp: number, timer: number) {
+    const hud = hudRef.current;
+    if (!hud) return;
+    const setHP = (el: HTMLElement | null, hp: number, lowColor: string, midColor: string, highColor: string) => {
+      if (!el) return;
+      hp = Math.max(0, Math.min(100, hp));
+      el.style.width = hp + '%';
+      el.className = 'h-full ' + (hp <= 25 ? lowColor : hp <= 50 ? midColor : highColor);
+    };
+    setHP(hud.hp1, p1hp, 'bg-red-500', 'bg-yellow-500', 'bg-green-400');
+    setHP(hud.hp2, p2hp, 'bg-red-500', 'bg-yellow-500', 'bg-blue-400');
+    if (hud.timer) hud.timer.textContent = String(timer);
+  }
+
+  function handleGameEnd(winner: string) {
+    setGameActive(false);
+    overlayRef.current?.setResult(winner);
+    overlayRef.current?.show();
+    gameLoop.stopLoop();
+  }
+
+  const initializePlayers = () => {
+    const canvas = canvasRef.current?.getCanvas();
+    if (!canvas) return null;
+    const W = canvas.clientWidth;
+    const FLOOR_Y = canvas.clientHeight - (isMobile ? 60 : 90);
+    const p1 = createPlayer({ x: isMobile ? 60 : 120, color: '#4ade80', face: 1, controls: { left: 'a', right: 'd', up: 'w', punch: 'f', kick: 'g' }, isBot: true, isMobile, isLandscape, floorY: FLOOR_Y });
+    const p2 = createPlayer({ x: W - (isMobile ? 100 : 170), color: '#60a5fa', face: -1, controls: { left: 'ArrowLeft', right: 'ArrowRight', up: 'ArrowUp', punch: '/', kick: '.' }, isBot: false, isMobile, isLandscape, floorY: FLOOR_Y });
+    return [p1, p2] as [Player, Player];
   };
 
-  const handleKeyUp = (e: KeyboardEvent) => {
-    keys.current.delete(e.key);
-  };
+  function resetGame() {
+    const canvas = canvasRef.current?.getCanvas();
+    if (!canvas || !playersRef.current) return;
+    const W = canvas.clientWidth;
+    const FLOOR_Y = canvas.clientHeight - (isMobile ? 60 : 90);
+    const [p1, p2] = playersRef.current;
+    resetPlayer(p1, isMobile ? 60 : 120, 1, FLOOR_Y);
+    resetPlayer(p2, W - (isMobile ? 100 : 170), -1, FLOOR_Y);
+    overlayRef.current?.hide();
+    setGameActive(true);
+    gameLoop.resetTimer();
+    gameLoop.startLoop();
+  }
 
-  // Mobile control handler
-  const handleMobileControl = (key: string, pressed: boolean) => {
-    if (pressed) {
-      mobileKeys.current.add(key);
-    } else {
-      mobileKeys.current.delete(key);
-    }
-  };
-
-  // Initialize game on mount
-  React.useEffect(() => {
+  useEffect(() => {
     const canvas = canvasRef.current?.getCanvas();
     if (!canvas) return;
-
-    // Setup canvas
     const DPR = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
     const ctx = canvasRef.current?.getContext();
     if (!ctx) return;
@@ -175,17 +104,11 @@ export default function ResponsiveFightingGame() {
 
     window.addEventListener('resize', resize);
     resize();
-
-    // Initialize players
     playersRef.current = initializePlayers();
-    
-    // Setup keyboard events (desktop only)
     if (!isMobile) {
       window.addEventListener('keydown', handleKeyDown);
       window.addEventListener('keyup', handleKeyUp);
     }
-
-    // Start game
     resetGame();
 
     return () => {
@@ -196,33 +119,43 @@ export default function ResponsiveFightingGame() {
       }
       gameLoop.stopLoop();
     };
-  }, [isMobile, isLandscape, spriteLoaded]);
+  }, [isMobile, isLandscape, spriteLoadedMaveli, spriteLoadedVamanan]);
+
+  function handleKeyDown(e: KeyboardEvent) {
+    keys.current.add(e.key);
+    if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', ' '].includes(e.key)) e.preventDefault();
+    if (e.key.toLowerCase() === 'r') resetGame();
+  }
+  function handleKeyUp(e: KeyboardEvent) { keys.current.delete(e.key); }
+  function handleMobileControl(key: string, pressed: boolean) {
+    if (pressed) mobileKeys.current.add(key);
+    else mobileKeys.current.delete(key);
+  }
 
   return (
     <div className="w-full h-screen bg-gray-900 relative overflow-hidden select-none">
+      {/* HUD */}
       <HUD ref={hudRef} isMobile={isMobile} />
+      {/* Canvas */}
       <GameCanvas ref={canvasRef} isMobile={isMobile} isLandscape={isLandscape} />
-      
+      {/* Mobile Controls */}
       {isMobile && (
-        <MobileControls 
-          isLandscape={isLandscape} 
-          onControlChange={handleMobileControl} 
+        <MobileControls
+          isLandscape={isLandscape}
+          onControlChange={handleMobileControl}
         />
       )}
-      
-      <GameOverlay 
-        ref={overlayRef} 
-        isMobile={isMobile} 
-        onRestart={resetGame} 
+      {/* Overlay for round results */}
+      <GameOverlay
+        ref={overlayRef}
+        isMobile={isMobile}
+        onRestart={resetGame}
       />
-      
 
-      <style jsx>{`
-        button {
-          -webkit-tap-highlight-color: transparent;
-          user-select: none;
-        }
-      `}</style>
+      {/* 🔥 LOADING SCREEN */}
+      {!gameLoop.gameReady && (
+        <TropicalLoadingScreen/>
+      )}
     </div>
   );
 }

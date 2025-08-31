@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 
-export function useSpriteLoader() {
+export function useSpriteLoader(characterName:string) {
   const [spriteLoaded, setSpriteLoaded] = useState(false);
   const spriteSheet = useRef<HTMLImageElement | null>(null);
 
@@ -14,7 +14,11 @@ export function useSpriteLoader() {
       console.warn('Could not load spritesheet_maveli.png, using fallback rendering');
       setSpriteLoaded(false);
     };
-    img.src = 'spritesheet_maveli.png';
+    if(characterName==="maveli"){
+      img.src = 'spritesheet_maveli.png';
+    }else{
+      img.src='spritesheet_vamanan.png'
+    }
   }, []);
 
   return { spriteLoaded, spriteSheet: spriteSheet.current };

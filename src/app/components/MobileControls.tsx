@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useState } from 'react';
+import { useCallback, useState, useRef } from 'react';
 
 interface MobileControlsProps {
   isLandscape: boolean;
@@ -12,12 +12,61 @@ export default function MobileControls({
   onControlChange,
 }: MobileControlsProps) {
   const [isFullscreen, setIsFullscreen] = useState(false);
+  
+  // Track active buttons to prevent spam
+  const activeButtons = useRef<Set<string>>(new Set());
+  const cooldowns = useRef<Map<string, number>>(new Map());
+  
+  // Cooldown duration in milliseconds (adjust as needed)
+  const ATTACK_COOLDOWN = 300; // 300ms between attacks
+  const MOVEMENT_COOLDOWN = 50; // 50ms for movement (more responsive)
 
   const handleControl = useCallback(
     (key: string, pressed: boolean, e?: React.TouchEvent | React.MouseEvent) => {
       if (e) e.preventDefault();
-      if (pressed && 'vibrate' in navigator) navigator.vibrate(15);
-      onControlChange(key, pressed);
+      
+      // Determine if this is an attack button
+      const isAttack = key === '/' || key === '.';
+      const cooldownTime = isAttack ? ATTACK_COOLDOWN : MOVEMENT_COOLDOWN;
+      
+      if (pressed) {
+        // Check if button is already active (prevent spam)
+        if (activeButtons.current.has(key)) {
+          return;
+        }
+        
+        // Check cooldown for attack buttons
+        if (isAttack) {
+          const lastPress = cooldowns.current.get(key) || 0;
+          const now = Date.now();
+          
+          if (now - lastPress < cooldownTime) {
+            return; // Still in cooldown
+          }
+          
+          cooldowns.current.set(key, now);
+        }
+        
+        // Mark as active and vibrate
+        activeButtons.current.add(key);
+        if ('vibrate' in navigator) navigator.vibrate(15);
+        
+        onControlChange(key, true);
+        
+        // For attack buttons, automatically release after a short duration
+        if (isAttack) {
+          setTimeout(() => {
+            activeButtons.current.delete(key);
+            onControlChange(key, false);
+          }, 100); // Short press duration
+        }
+      } else {
+        // Release button
+        if (activeButtons.current.has(key)) {
+          activeButtons.current.delete(key);
+          onControlChange(key, false);
+        }
+      }
     },
     [onControlChange]
   );
@@ -31,13 +80,12 @@ export default function MobileControls({
   }, []);
 
   const baseButton = `rounded-full flex items-center justify-center text-white font-bold select-none
-    transition-transform duration-100 ease-in-out active:scale-90 shadow-lg`;
+    transition-transform duration-100 ease-in-out active:scale-90 shadow-lg
+    touch-none`; // Prevents unwanted touch actions
 
-  // Increased D-pad button sizes
   const dpadButton = `${baseButton} bg-gray-700/70 backdrop-blur-md border border-gray-500/30 
     ${isLandscape ? 'w-16 h-16 text-lg' : 'w-18 h-18 text-xl'}`;
 
-  // Different sizes for punch (smaller) and kick (bigger)
   const punchButton = `${baseButton} backdrop-blur-md border bg-red-500/80 border-red-400/50 shadow-red-500/50
     ${isLandscape ? 'w-16 h-16 text-lg' : 'w-18 h-18 text-xl'}`;
 
@@ -48,12 +96,16 @@ export default function MobileControls({
     ${isLandscape ? 'w-12 h-12 text-sm' : 'w-14 h-14 text-base'}`;
 
   return (
-    <div className="absolute inset-0 z-20 pointer-events-none">
+    <div
+      className="absolute inset-0 z-20 pointer-events-none select-none"
+      onContextMenu={(e) => e.preventDefault()} // Prevent right-click/long-press menu
+    >
       {/* Fullscreen Button */}
       <div className="absolute top-3 right-3 pointer-events-auto">
         <button
           className={fullscreenButton}
           onClick={toggleFullscreen}
+          onContextMenu={(e) => e.preventDefault()}
         >
           {isFullscreen ? '⤢' : '⛶'}
         </button>
@@ -74,6 +126,7 @@ export default function MobileControls({
             onMouseDown={() => handleControl('ArrowUp', true)}
             onMouseUp={() => handleControl('ArrowUp', false)}
             onMouseLeave={() => handleControl('ArrowUp', false)}
+            onContextMenu={(e) => e.preventDefault()}
           >
             ▲
           </button>
@@ -85,6 +138,7 @@ export default function MobileControls({
               onMouseDown={() => handleControl('ArrowLeft', true)}
               onMouseUp={() => handleControl('ArrowLeft', false)}
               onMouseLeave={() => handleControl('ArrowLeft', false)}
+              onContextMenu={(e) => e.preventDefault()}
             >
               ◀
             </button>
@@ -95,13 +149,14 @@ export default function MobileControls({
               onMouseDown={() => handleControl('ArrowRight', true)}
               onMouseUp={() => handleControl('ArrowRight', false)}
               onMouseLeave={() => handleControl('ArrowRight', false)}
+              onContextMenu={(e) => e.preventDefault()}
             >
               ▶
             </button>
           </div>
         </div>
 
-        {/* Action Buttons - Punch (smaller) and Kick (bigger) */}
+        {/* Action Buttons */}
         <div className="flex items-end space-x-5">
           <button
             className={punchButton}
@@ -110,6 +165,7 @@ export default function MobileControls({
             onMouseDown={() => handleControl('/', true)}
             onMouseUp={() => handleControl('/', false)}
             onMouseLeave={() => handleControl('/', false)}
+            onContextMenu={(e) => e.preventDefault()}
           >
             🥊
           </button>
@@ -120,6 +176,7 @@ export default function MobileControls({
             onMouseDown={() => handleControl('.', true)}
             onMouseUp={() => handleControl('.', false)}
             onMouseLeave={() => handleControl('.', false)}
+            onContextMenu={(e) => e.preventDefault()}
           >
             🦵
           </button>
