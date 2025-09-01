@@ -11,15 +11,15 @@ export default function Hero() {
   // 🔥 Fullscreen & Orientation Handler
   const enterFullscreenAndLandscape = async () => {
     try {
-      // Fullscreen API
       if (document.documentElement.requestFullscreen) {
         await document.documentElement.requestFullscreen();
       } else if ((document.documentElement as any).webkitRequestFullscreen) {
         await (document.documentElement as any).webkitRequestFullscreen();
       }
 
-      // Orientation Lock (TypeScript-safe)
-      const orientation = (screen.orientation || (screen as any).msOrientation || (screen as any).mozOrientation) as ScreenOrientation & {
+      const orientation = (screen.orientation ||
+        (screen as any).msOrientation ||
+        (screen as any).mozOrientation) as ScreenOrientation & {
         lock?: (orientation: string) => Promise<void>;
       };
 
@@ -70,20 +70,19 @@ export default function Hero() {
           <PlayNowButton
             ariaDescribedBy={helperId.current}
             className="mt-2"
-            onClick={()=>{
-                handlePlayNow()
-            }}
+            onClick={handlePlayNow}
           />
           <span className="sr-only" id="main-play-btn" />
 
-          <div className="rounded-2xl ring-1 ring-neutral-800 overflow-hidden">
+          {/* 🔥 Fixed Image: Crisp and Responsive */}
+          <div className="relative w-[min(720px,90vw)] h-[400px] rounded-2xl ring-1 ring-neutral-800 overflow-hidden">
             <Image
               src="/main.png"
               alt="Maveli vs Vamanan game cover art"
-              width={200}
-              height={200}
+              fill
               priority
-              className="h-auto w-[min(720px,90vw)] object-cover"
+              sizes="(max-width: 768px) 90vw, 720px"
+              className="object-cover"
             />
           </div>
 
