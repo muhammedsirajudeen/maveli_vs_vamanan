@@ -83,12 +83,12 @@ const GameOverlay = forwardRef<GameOverlayRef, GameOverlayProps>(
                   <li>
                     Post the image on Instagram and tag{' '}
                     <a
-                      href="https://instagram.com/lokahmovie"
+                      href="https://instagram.com/ciltriqlabs"
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-yellow-400 font-semibold underline hover:text-yellow-300"
                     >
-                      @lokahmovie
+                      @ciltriqlabs
                     </a>.
                   </li>
                   <li>
