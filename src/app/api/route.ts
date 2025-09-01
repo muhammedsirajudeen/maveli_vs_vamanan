@@ -14,7 +14,7 @@ export async function GET(req: NextRequest) {
         const token = jwt.sign(tokenPayload, SECRET, { expiresIn: '7d' });
 
         // 2. Load the base image from /public
-        const img = await loadImage(`${process.cwd()}/public/winner.png`);
+        const img = await loadImage(`https://onam.ciltriq.com/winner.png`);
         const canvas = createCanvas(img.width, img.height);
         const ctx = canvas.getContext('2d');
 

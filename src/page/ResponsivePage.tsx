@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import GameCanvas, { GameCanvasRef } from '@/app/components/GameCanvas';
 import GameOverlay, { GameOverlayRef } from '@/app/components/GameOverlay';
 import HUD, { HUDRef } from '@/app/components/HUD';
@@ -8,7 +8,6 @@ import { useSpriteLoader } from '@/hooks/useSpriteLoader';
 import { useDeviceDetection } from '@/hooks/useDeviceDetection';
 import { createPlayer, resetPlayer } from '@/game/Player';
 import { Player } from '@/types/Player';
-import { useRef, useState, useEffect } from 'react';
 import TropicalLoadingScreen from '@/app/components/LoadingScreen';
 
 export default function ResponsiveFightingGame() {
@@ -66,8 +65,26 @@ export default function ResponsiveFightingGame() {
     if (!canvas) return null;
     const W = canvas.clientWidth;
     const FLOOR_Y = canvas.clientHeight - (isMobile ? 60 : 90);
-    const p1 = createPlayer({ x: isMobile ? 60 : 120, color: '#4ade80', face: 1, controls: { left: 'a', right: 'd', up: 'w', punch: 'f', kick: 'g' }, isBot: true, isMobile, isLandscape, floorY: FLOOR_Y });
-    const p2 = createPlayer({ x: W - (isMobile ? 100 : 170), color: '#60a5fa', face: -1, controls: { left: 'ArrowLeft', right: 'ArrowRight', up: 'ArrowUp', punch: '/', kick: '.' }, isBot: false, isMobile, isLandscape, floorY: FLOOR_Y });
+    const p1 = createPlayer({
+      x: isMobile ? 60 : 120,
+      color: '#4ade80',
+      face: 1,
+      controls: { left: 'a', right: 'd', up: 'w', punch: 'f', kick: 'g' },
+      isBot: true,
+      isMobile,
+      isLandscape,
+      floorY: FLOOR_Y,
+    });
+    const p2 = createPlayer({
+      x: W - (isMobile ? 100 : 170),
+      color: '#60a5fa',
+      face: -1,
+      controls: { left: 'ArrowLeft', right: 'ArrowRight', up: 'ArrowUp', punch: '/', kick: '.' },
+      isBot: false,
+      isMobile,
+      isLandscape,
+      floorY: FLOOR_Y,
+    });
     return [p1, p2] as [Player, Player];
   };
 
@@ -109,7 +126,6 @@ export default function ResponsiveFightingGame() {
       window.addEventListener('keydown', handleKeyDown);
       window.addEventListener('keyup', handleKeyUp);
     }
-    resetGame();
 
     return () => {
       window.removeEventListener('resize', resize);
@@ -119,14 +135,25 @@ export default function ResponsiveFightingGame() {
       }
       gameLoop.stopLoop();
     };
-  }, [isMobile, isLandscape, spriteLoadedMaveli, spriteLoadedVamanan]);
+  }, [isMobile, isLandscape]);
+
+  // 🔥 Wait for assets to load before starting
+  useEffect(() => {
+    if (gameLoop.gameReady && playersRef.current) {
+      resetGame();
+    }
+  }, [gameLoop.gameReady]);
 
   function handleKeyDown(e: KeyboardEvent) {
     keys.current.add(e.key);
     if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', ' '].includes(e.key)) e.preventDefault();
     if (e.key.toLowerCase() === 'r') resetGame();
   }
-  function handleKeyUp(e: KeyboardEvent) { keys.current.delete(e.key); }
+
+  function handleKeyUp(e: KeyboardEvent) {
+    keys.current.delete(e.key);
+  }
+
   function handleMobileControl(key: string, pressed: boolean) {
     if (pressed) mobileKeys.current.add(key);
     else mobileKeys.current.delete(key);
@@ -153,9 +180,7 @@ export default function ResponsiveFightingGame() {
       />
 
       {/* 🔥 LOADING SCREEN */}
-      {!gameLoop.gameReady && (
-        <TropicalLoadingScreen/>
-      )}
+      {!gameLoop.gameReady && <TropicalLoadingScreen />}
     </div>
   );
 }

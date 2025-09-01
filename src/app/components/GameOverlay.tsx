@@ -31,7 +31,7 @@ const GameOverlay = forwardRef<GameOverlayRef, GameOverlayProps>(
       },
     }));
 
-    // 🔥 Function to download dynamic watermarked image
+    // 🔥 Download dynamic watermarked image
     const handleDownload = () => {
       const link = document.createElement('a');
       link.href = '/api/'; // Dynamic API route
@@ -55,6 +55,7 @@ const GameOverlay = forwardRef<GameOverlayRef, GameOverlayProps>(
 
             {winner === 'Maveli' ? (
               <>
+                {/* Winner Content */}
                 <div className="mb-6">
                   <Image
                     src="/winner.png"
@@ -70,18 +71,41 @@ const GameOverlay = forwardRef<GameOverlayRef, GameOverlayProps>(
                     FREE Lokah tickets worth ₹500!
                   </span>
                   <br />
-                  To claim:
+                  To enter the giveaway:
                 </p>
+
+                {/* Terms */}
                 <ul className="text-left text-gray-200 mb-6 list-disc list-inside space-y-2 text-sm sm:text-base">
                   <li>
-                    Click the download button and post the image on Instagram & tag(Note: only post the image after clicking download){' '}
-                    <span className="text-yellow-400 font-semibold">
-                      @lokahmovie
-                    </span>
+                    Click the <span className="font-semibold text-yellow-400">Download</span> button
+                    to get your personalized winner image.
                   </li>
-                  <li>Use the hashtag #MaveliWins</li>
-                  <li>Winners will be announced soon!</li>
+                  <li>
+                    Post the image on Instagram and tag{' '}
+                    <a
+                      href="https://instagram.com/lokahmovie"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-yellow-400 font-semibold underline hover:text-yellow-300"
+                    >
+                      @lokahmovie
+                    </a>.
+                  </li>
+                  <li>
+                    Use the hashtag <span className="text-yellow-400 font-semibold">#MaveliWins</span>.
+                  </li>
+                  <li>
+                    The giveaway closes on <span className="text-yellow-400 font-semibold">September 5th</span>.
+                  </li>
+                  <li>
+                    <span className="text-yellow-400 font-semibold">Only ONE winner</span> will be chosen from all eligible entries.
+                  </li>
+                  <li>
+                    The winner will be announced on Instagram on{' '}
+                    <span className="text-yellow-400 font-semibold">September 5th</span>.
+                  </li>
                 </ul>
+
                 <Button
                   onClick={handleDownload}
                   className="bg-yellow-500 hover:bg-yellow-600 text-black font-bold px-6 py-3 rounded-xl shadow-lg mb-4 w-full sm:w-auto"
@@ -91,6 +115,7 @@ const GameOverlay = forwardRef<GameOverlayRef, GameOverlayProps>(
               </>
             ) : winner === 'Vamanan' ? (
               <>
+                {/* Losing Screen */}
                 <p className="mb-6 text-lg text-red-400 font-semibold">
                   😔 Vamanan Wins! Better luck next time.
                 </p>
@@ -114,6 +139,7 @@ const GameOverlay = forwardRef<GameOverlayRef, GameOverlayProps>(
               </p>
             )}
 
+            {/* Restart Button */}
             <button
               className="bg-yellow-600 hover:bg-yellow-700 text-white font-bold py-3 px-6 rounded-lg shadow-lg w-full sm:w-auto"
               onClick={onRestart}
