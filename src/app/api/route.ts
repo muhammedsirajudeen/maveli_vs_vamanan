@@ -23,7 +23,7 @@ export async function GET(req: NextRequest) {
 
         // 4. Style for watermark
         const fontSize = Math.floor(img.width * 0.02); // dynamic font size (~2% of width)
-        ctx.font = `bold ${fontSize}px Arial`;
+        ctx.font = `bold ${fontSize}px sans-serif`;
         ctx.textAlign = 'right';
         ctx.textBaseline = 'bottom';
 
