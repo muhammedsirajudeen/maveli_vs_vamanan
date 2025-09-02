@@ -77,11 +77,14 @@ const GameOverlay = forwardRef<GameOverlayRef, GameOverlayProps>(
                 {/* Terms */}
                 <ul className="text-left text-gray-200 mb-6 list-disc list-inside space-y-2 text-sm sm:text-base">
                   <li>
-                    Click the <span className="font-semibold text-yellow-400">Download</span> button
-                    to get your personalized winner image.
+                    Click the{' '}
+                    <span className="font-semibold text-yellow-400">Download</span>{' '}
+                    button to get your personalized winner image.
                   </li>
                   <li>
-                    Post the image on Instagram and tag{' '}
+                    Post the image as a{' '}
+                    <span className="text-yellow-400 font-semibold">story</span> on
+                    Instagram and tag{' '}
                     <a
                       href="https://instagram.com/ciltriqlabs"
                       target="_blank"
@@ -92,13 +95,16 @@ const GameOverlay = forwardRef<GameOverlayRef, GameOverlayProps>(
                     </a>.
                   </li>
                   <li>
-                    Use the hashtag <span className="text-yellow-400 font-semibold">#MaveliWins</span>.
+                    Use the hashtag{' '}
+                    <span className="text-yellow-400 font-semibold">#MaveliWins</span>.
                   </li>
                   <li>
-                    The giveaway closes on <span className="text-yellow-400 font-semibold">September 5th</span>.
+                    The giveaway closes on{' '}
+                    <span className="text-yellow-400 font-semibold">September 5th</span>.
                   </li>
                   <li>
-                    <span className="text-yellow-400 font-semibold">Only ONE winner</span> will be chosen from all eligible entries.
+                    <span className="text-yellow-400 font-semibold">Only ONE winner</span>{' '}
+                    will be chosen from all eligible entries.
                   </li>
                   <li>
                     The winner will be announced on Instagram on{' '}
@@ -130,10 +136,8 @@ const GameOverlay = forwardRef<GameOverlayRef, GameOverlayProps>(
                 ) : (
                   <>
                     Press{' '}
-                    <span className="bg-gray-700 px-2 py-1 rounded text-sm">
-                      R
-                    </span>{' '}
-                    to restart
+                    <span className="bg-gray-700 px-2 py-1 rounded text-sm">R</span> to
+                    restart
                   </>
                 )}
               </p>
